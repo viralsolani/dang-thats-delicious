@@ -23,7 +23,7 @@ exports.addStore = (req, res) => {
 };
 
 /**
- * creating stroe
+ * creating store
  *
  * @param req
  * @param res
@@ -33,4 +33,17 @@ exports.createStore = async (req, res) => {
     const store = await (new Store(req.body)).save();
     req.flash('success', `Successfully Created ${store.name}. Care to leave a review?`);
     res.redirect(`/store/${store.slug}`);
+};
+
+
+/**
+ * Getting all store
+ *
+ * @param req
+ * @param res
+ * @return {*}
+ */
+exports.getStores = async (req, res) => {
+  const stores = await Store.find();
+  res.render('stores', { title: 'Stores', stores });
 };
