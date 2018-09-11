@@ -8,10 +8,12 @@ const multerOptions = {
   storage: multer.memoryStorage(),
   fileFilter(req, file, next) {
     const isPhoto = file.mimetype.startsWith('image/');
-    if(isPhoto) {
+    if (isPhoto) {
       next(null, true);
     } else {
-      next({ message: 'That filetype isn\'t allowed!' }, false);
+      next({
+        message: 'That filetype isn\'t allowed!'
+      }, false);
     }
   }
 };
@@ -21,7 +23,9 @@ exports.homePage = (req, res) => {
 };
 
 exports.addStore = (req, res) => {
-  res.render('editStore', { title: 'Add Store' });
+  res.render('editStore', {
+    title: 'Add Store'
+  });
 };
 
 exports.upload = multer(multerOptions).single('photo');
@@ -52,7 +56,10 @@ exports.createStore = async (req, res) => {
 exports.getStores = async (req, res) => {
   // 1. Query the database for a list of all stores
   const stores = await Store.find();
-  res.render('stores', { title: 'Stores', stores });
+  res.render('stores', {
+    title: 'Stores',
+    stores
+  });
 };
 
 const confirmOwner = (store, user) => {
@@ -64,18 +71,25 @@ const confirmOwner = (store, user) => {
 
 exports.editStore = async (req, res) => {
   // 1. Find the store given the ID
-  const store = await Store.findOne({ _id: req.params.id });
+  const store = await Store.findOne({
+    _id: req.params.id
+  });
   // 2. confirm they are the owner of the store
   confirmOwner(store, req.user);
   // 3. Render out the edit form so the user can update their store
-  res.render('editStore', { title: `Edit ${store.name}`, store });
+  res.render('editStore', {
+    title: `Edit ${store.name}`,
+    store
+  });
 };
 
 exports.updateStore = async (req, res) => {
   // set the location data to be a point
   req.body.location.type = 'Point';
   // find and update the store
-  const store = await Store.findOneAndUpdate({ _id: req.params.id }, req.body, {
+  const store = await Store.findOneAndUpdate({
+    _id: req.params.id
+  }, req.body, {
     new: true, // return the new store instead of the old one
     runValidators: true
   }).exec();
@@ -85,24 +99,39 @@ exports.updateStore = async (req, res) => {
 };
 
 exports.getStoreBySlug = async (req, res, next) => {
-  const store = await Store.findOne({slug: req.params.slug});
+  const store = await Store.findOne({
+    slug: req.params.slug
+  });
 
-  if(!store) return next();
+  if (!store) return next();
 
-  res.render('store', {store, title:store.name });
-  
+  res.render('store', {
+    store,
+    title: store.name
+  });
+
 };
 
 exports.getStoresByTag = async (req, res) => {
   const tag = req.params.tag;
-  const tagQuery = tag || { $exists: true, $ne: [] };
+  const tagQuery = tag || {
+    $exists: true,
+    $ne: []
+  };
 
   const tagsPromise = Store.getTagsList();
-  const storesPromise = Store.find({ tags: tagQuery });
+  const storesPromise = Store.find({
+    tags: tagQuery
+  });
   const [tags, stores] = await Promise.all([tagsPromise, storesPromise]);
 
 
-  res.render('tag', { tags, title: 'Tags', tag, stores });
+  res.render('tag', {
+    tags,
+    title: 'Tags',
+    tag,
+    stores
+  });
 };
 
 /**
@@ -110,20 +139,24 @@ exports.getStoresByTag = async (req, res) => {
  */
 exports.searchStores = async (req, res) => {
   const stores = await Store
-  // first find stores that match
-  .find({
-    $text: {
-      $search: req.query.q
-    }
-  }, {
-    score: { $meta: 'textScore' }
-  })
-  // the sort them
-  .sort({
-    score: { $meta: 'textScore' }
-  })
-  // limit to only 5 results
-  .limit(5);
+    // first find stores that match
+    .find({
+      $text: {
+        $search: req.query.q
+      }
+    }, {
+      score: {
+        $meta: 'textScore'
+      }
+    })
+    // the sort them
+    .sort({
+      score: {
+        $meta: 'textScore'
+      }
+    })
+    // limit to only 5 results
+    .limit(5);
   res.json(stores);
 };
 
@@ -144,6 +177,13 @@ exports.mapStores = async (req, res) => {
     }
   };
 
-  const stores = await Store.find(q).select('slug name description location').limit(10);
+  const stores = await Store.find(q).select('slug name description location photo').limit(10);
   res.json(stores);
+};
+
+// Map Page
+exports.mapPage = (req, res) => {
+  res.render('map', {
+    title: 'Map'
+  });
 };
