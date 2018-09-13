@@ -21,15 +21,21 @@ const userSchema = new Schema({
     trim: true
   },
   resetPasswordToken: String,
-  resetPasswordExpires: Date
+  resetPasswordExpires: Date,
+  hearts: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Store'
+  }]
 });
 
-userSchema.virtual('gravatar').get(function() {
+userSchema.virtual('gravatar').get(function () {
   const hash = md5(this.email);
   return `https://gravatar.com/avatar/${hash}?s=200`;
 });
 
-userSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
+userSchema.plugin(passportLocalMongoose, {
+  usernameField: 'email'
+});
 userSchema.plugin(mongodbErrorHandler);
 
 module.exports = mongoose.model('User', userSchema);

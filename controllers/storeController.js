@@ -187,3 +187,18 @@ exports.mapPage = (req, res) => {
     title: 'Map'
   });
 };
+
+// heart the store
+exports.heartStore = async (req, res) => {
+  const hearts = req.user.hearts.map(obj => obj.toString());
+  const operator = hearts.includes(req.params.id) ? '$pull' : '$addToSet';
+  const user = await User
+    .findByIdAndUpdate(req.user._id, {
+      [operator]: {
+        hearts: req.params.id
+      }
+    }, {
+      new: true
+    });
+  res.json(user);
+};
